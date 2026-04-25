@@ -1,1 +1,42 @@
+name: Build_SpaceXit_V4_Ghost
 
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Instalar Theos e ldid
+        run: |
+          git clone --recursive https://github.com/theos/theos.git ~/theos
+          # Baixa o ldid diretamente na pasta bin do theos
+          curl -L "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_x86_64" -o ~/theos/bin/ldid
+          chmod +x ~/theos/bin/ldid
+          echo "THEOS=~/theos" >> $GITHUB_ENV
+          echo "~/theos/bin" >> $GITHUB_PATH
+
+      - name: Baixar SDK iOS
+        run: |
+          rm -rf ~/theos/sdks
+          git clone --depth 1 https://github.com/theos/sdks.git ~/theos/sdks
+
+      - name: Compilar Dylib
+        run: |
+          export THEOS=~/theos
+          export PATH="$THEOS/bin:$PATH"
+          # Limpa builds antigos que podem causar o erro 2
+          make clean
+          make package FINALPACKAGE=1
+          
+      - name: Upload da Dylib
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bypass_Limpeza_Final
+          path: packages/*.deb
