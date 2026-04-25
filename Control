@@ -1,0 +1,8 @@
+Package: com.eoo.spacexit
+Name: Space Xit Premium
+Depends: mobilesubstrate
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Menu VIP para Vice Online com Bypass integrado.
+Maintainer: @eoo_gomes3
+Author: @eoo_gomes3
