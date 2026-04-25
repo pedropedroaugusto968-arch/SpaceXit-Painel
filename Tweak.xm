@@ -23,14 +23,12 @@
 
 // --- FUNÇÕES DE BYPASS (PROTEÇÃO) ---
 
-// 1. Impede que o jogo detecte que um "Debugger" está conectado
 void disable_debugger() {
     void* handle = dlopen(0, RTLD_GLOBAL | RTLD_NOW);
     void (*ptrace)(int, pid_t, caddr_t, int) = dlsym(handle, "ptrace");
     if (ptrace) ptrace(31, 0, 0, 0); // PT_DENY_ATTACH
 }
 
-// 2. Camufla arquivos de Jailbreak para o jogo não fechar
 BOOL is_bypassed() {
     NSArray *paths = @[@"/Applications/Cydia.app", @"/Library/MobileSubstrate/MobileSubstrate.dylib", @"/bin/bash", @"/usr/sbin/sshd", @"/etc/apt"];
     for (NSString *path in paths) {
@@ -40,7 +38,7 @@ BOOL is_bypassed() {
 }
 
 - (void)setupMenu {
-    disable_debugger(); // Ativa o Anti-Debugger na hora
+    disable_debugger();
     
     dispatch_async(dispatch_get_main_queue(), ^{
         UIWindow *window = [[UIApplication sharedApplication] keyWindow];
@@ -54,11 +52,6 @@ BOOL is_bypassed() {
         self.floatingButton.layer.borderColor = [UIColor whiteColor].CGColor;
         [self.floatingButton setTitle:@"SPACE" forState:UIControlStateNormal];
         
-        // Proteção Visual: O menu fica "invisível" em gravações de tela (se o iOS permitir)
-        if (@available(iOS 13.0, *)) {
-            self.floatingButton.layer.magnificationFilter = kCAFilterNearest;
-        }
-
         [self.floatingButton addTarget:self action:@selector(expandMenu) forControlEvents:UIControlEventTouchUpInside];
         UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
         [self.floatingButton addGestureRecognizer:pan];
@@ -72,7 +65,6 @@ BOOL is_bypassed() {
         self.mainPanel.layer.borderColor = [UIColor purpleColor].CGColor;
         self.mainPanel.hidden = YES;
 
-        // Título com status do Bypass
         UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 10, 280, 30)];
         title.text = is_bypassed() ? @"SPACE XIT - BYPASS ON" : @"SPACE XIT - SECURE";
         title.textColor = [UIColor purpleColor];
@@ -80,7 +72,6 @@ BOOL is_bypassed() {
         title.font = [UIFont boldSystemFontOfSize:17];
         [self.mainPanel addSubview:title];
 
-        // Botão X para Minimizar
         UIButton *close = [[UIButton alloc] initWithFrame:CGRectMake(245, 10, 25, 25)];
         [close setTitle:@"X" forState:UIControlStateNormal];
         close.backgroundColor = [UIColor colorWithRed:0.3 green:0.0 blue:0.0 alpha:1.0];
@@ -91,8 +82,8 @@ BOOL is_bypassed() {
         self.scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 50, 280, 340)];
         [self.mainPanel addSubview:self.scrollView];
 
-        // Funções
-        [self addCheatOption:@"BYPASS ANTICHEAT" yPos:10 tag:99]; // Visual
+        // Adicionando as Funções com Tags para a lógica
+        [self addCheatOption:@"BYPASS ANTICHEAT" yPos:10 tag:99];
         [self addCheatOption:@"AIMBOT" yPos:60 tag:1];
         [self addCheatOption:@"ESP MASTER" yPos:110 tag:2];
         [self addCheatOption:@"GOD MODE" yPos:160 tag:3];
@@ -115,8 +106,18 @@ BOOL is_bypassed() {
 
     UISwitch *sw = [[UISwitch alloc] initWithFrame:CGRectMake(210, y, 50, 30)];
     sw.onTintColor = [UIColor purpleColor];
-    if(tag == 99) [sw setOn:YES animated:YES]; // Bypass já nasce ligado
+    sw.tag = tag;
+    [sw addTarget:self action:@selector(cheatChanged:) forControlEvents:UIControlEventValueChanged];
+    if(tag == 99) [sw setOn:YES animated:YES];
     [self.scrollView addSubview:sw];
+}
+
+// Lógica para quando você ligar/desligar uma chave
+- (void)cheatChanged:(UISwitch *)sw {
+    if (sw.tag == 1) { // AIMBOT
+        if (sw.on) { /* Lógica de ligar */ } else { /* Lógica de desligar */ }
+    }
+    // Adicione os outros tags (2, 3, 4...) conforme precisar
 }
 
 - (void)expandMenu { self.mainPanel.hidden = NO; self.floatingButton.hidden = YES; }
@@ -126,7 +127,6 @@ BOOL is_bypassed() {
 @end
 
 %ctor {
-    // Só carrega o menu se o app estiver pronto, evitando crash de memória
     [[NSNotificationCenter defaultCenter] addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:[NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         [[SpaceMenu sharedInstance] setupMenu];
     }];
